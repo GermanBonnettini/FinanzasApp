@@ -105,17 +105,8 @@ struct CalendarHeatmapView: View {
                 }
             }
             .frame(width: 36, height: 36)
-            .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(selectedDate == date ? AppTheme.accent.opacity(0.3) : Color.clear)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(
-                        selectedDate == date ? AppTheme.accent : Color.clear,
-                        lineWidth: 1.5
-                    )
-            )
+            .background(RoundedRectangle(cornerRadius: 8).fill(selectedDate == date ? AppTheme.accent.opacity(0.3) : Color.clear))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(selectedDate == date ? AppTheme.accent : Color.clear, lineWidth: 1.5))
         }
         .buttonStyle(.plain)
     }

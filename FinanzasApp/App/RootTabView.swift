@@ -83,27 +83,21 @@ private struct CustomBottomBar: View {
     @State private var isPressed = false
 
     var body: some View {
-        ZStack {
-            // Barra transparente con material ultra delgado
-            HStack(spacing: 12) {
-                tabButton(.dashboard)
-                tabButton(.movements)
-                addButton
-                tabButton(.camera)
-                tabButton(.statistics)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        Capsule(style: .continuous)
-                            .strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
-                    )
-            )
-            .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
+        HStack(spacing: 12) {
+            tabButton(.dashboard)
+            tabButton(.movements)
+            addButton
+            tabButton(.camera)
+            tabButton(.statistics)
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(Capsule().strokeBorder(.white.opacity(0.08), lineWidth: 0.5))
+        )
+        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
     }
 
     private func tabButton(_ tab: RootTabView.Tab) -> some View {
@@ -113,17 +107,12 @@ private struct CustomBottomBar: View {
             }
         } label: {
             ZStack {
-                // Indicador de selección con animación
                 if selectedTab == tab {
                     Circle()
                         .fill(AppTheme.accent.opacity(0.2))
-                        .overlay(
-                            Circle()
-                                .strokeBorder(AppTheme.accent.opacity(0.5), lineWidth: 1.5)
-                        )
+                        .overlay(Circle().strokeBorder(AppTheme.accent.opacity(0.5), lineWidth: 1.5))
                         .transition(.scale.combined(with: .opacity))
                 }
-                
                 Image(systemName: tabIcon(for: tab, selected: selectedTab == tab))
                     .font(.system(size: 20, weight: selectedTab == tab ? .semibold : .medium))
                     .foregroundStyle(selectedTab == tab ? AppTheme.accent : AppTheme.textTertiary)

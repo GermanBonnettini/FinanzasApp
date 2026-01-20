@@ -76,10 +76,7 @@ struct StatisticsView: View {
                         .foregroundStyle(selectedPeriod == period ? .black : AppTheme.textSecondary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(selectedPeriod == period ? AppTheme.accent : AppTheme.surface2.opacity(0.6))
-                        )
+                        .background(RoundedRectangle(cornerRadius: 12).fill(selectedPeriod == period ? AppTheme.accent : AppTheme.surface2.opacity(0.6)))
                 }
                 .buttonStyle(.plain)
             }
@@ -137,20 +134,15 @@ struct StatisticsView: View {
     
     private func legendRow(color: Color, label: String, value: Double, percentage: Double) -> some View {
         HStack(spacing: 10) {
-            Circle()
-                .fill(color)
-                .frame(width: 12, height: 12)
-            
+            Circle().fill(color).frame(width: 12, height: 12)
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                     .foregroundStyle(AppTheme.textPrimary)
                     .font(.system(.body, design: .rounded).weight(.semibold))
-                
                 HStack(spacing: 6) {
                     Text(Formatters.currency.string(from: NSNumber(value: value)) ?? "$0")
                         .foregroundStyle(AppTheme.textSecondary)
                         .font(.caption)
-                    
                     Text("(\(Int(percentage))%)")
                         .foregroundStyle(AppTheme.textTertiary)
                         .font(.caption2)
@@ -204,21 +196,17 @@ struct StatisticsView: View {
     
     private func calculateDailyBalances() -> [Date: Double] {
         let calendar = Calendar.current
-        let now = Date()
-        var dailyBalances: [Date: Double] = [:]
-        
-        // Obtener todos los días del mes actual con movimientos
-        if let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
-           let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart) {
-            var currentDate = monthStart
-            while currentDate < monthEnd {
-                let dayStart = calendar.startOfDay(for: currentDate)
-                dailyBalances[dayStart] = vm.dailyBalance(for: currentDate)
-                currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
-            }
+        guard let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: Date())),
+              let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart) else {
+            return [:]
         }
-        
-        return dailyBalances
+        var balances: [Date: Double] = [:]
+        var currentDate = monthStart
+        while currentDate < monthEnd {
+            balances[calendar.startOfDay(for: currentDate)] = vm.dailyBalance(for: currentDate)
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
+        }
+        return balances
     }
     
     private var topCategoriesCard: some View {

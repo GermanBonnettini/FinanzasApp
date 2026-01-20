@@ -2,20 +2,12 @@
 //  MovementStore.swift
 //  FinanzasApp
 //
-//  Persistencia local ligera (UserDefaults + JSON).
-//  Diseñado para poder migrar a CoreData/SwiftData más adelante sin romper MVVM.
-//
 
 import Foundation
 
 protocol MovementStoreProtocol {
     func load() throws -> [Movement]
     func save(_ movements: [Movement]) throws
-}
-
-enum MovementStoreError: Error {
-    case encodingFailed
-    case decodingFailed
 }
 
 final class MovementStore: MovementStoreProtocol {
@@ -29,20 +21,12 @@ final class MovementStore: MovementStoreProtocol {
 
     func load() throws -> [Movement] {
         guard let data = defaults.data(forKey: key) else { return [] }
-        do {
-            return try JSONDecoder().decode([Movement].self, from: data)
-        } catch {
-            throw MovementStoreError.decodingFailed
-        }
+        return try JSONDecoder().decode([Movement].self, from: data)
     }
 
     func save(_ movements: [Movement]) throws {
-        do {
-            let data = try JSONEncoder().encode(movements)
-            defaults.set(data, forKey: key)
-        } catch {
-            throw MovementStoreError.encodingFailed
-        }
+        let data = try JSONEncoder().encode(movements)
+        defaults.set(data, forKey: key)
     }
 }
 

@@ -12,6 +12,16 @@ struct AddMovementView: View {
     @EnvironmentObject private var vm: AppViewModel
     @Namespace private var ns
 
+    let initialAmount: Double?
+    let initialTitle: String
+    let initialCategory: Category
+    
+    init(initialAmount: Double? = nil, initialTitle: String = "", initialCategory: Category = .comida) {
+        self.initialAmount = initialAmount
+        self.initialTitle = initialTitle
+        self.initialCategory = initialCategory
+    }
+
     @State private var type: MovementType = .expense
     @State private var category: Category = .comida
     @State private var title: String = ""
@@ -109,6 +119,15 @@ struct AddMovementView: View {
                 )
             }
             .onAppear {
+                // Pre-llenar campos si vienen valores iniciales
+                if let amount = initialAmount {
+                    amountText = formatAmount(amount)
+                }
+                if !initialTitle.isEmpty {
+                    title = initialTitle
+                }
+                category = initialCategory
+                
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     isAmountFocused = true
                 }
@@ -157,20 +176,14 @@ struct AddMovementView: View {
         Button {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                 type = t
-                let newCategories = Category.categories(for: t)
-                if let firstCategory = newCategories.first {
-                    category = firstCategory
-                }
+                category = Category.categories(for: t).first ?? category
             }
         } label: {
             ZStack {
                 if type == t {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    RoundedRectangle(cornerRadius: 14)
                         .fill(color.opacity(0.18))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .strokeBorder(color.opacity(0.45), lineWidth: 1)
-                        )
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(color.opacity(0.45), lineWidth: 1))
                         .matchedGeometryEffect(id: "type-pill", in: ns)
                 }
                 Text(title)
@@ -184,59 +197,42 @@ struct AddMovementView: View {
     }
     
     private var recurringToggle: some View {
-        Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                isRecurring.toggle()
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isRecurring ? AppTheme.accent.opacity(0.2) : AppTheme.surface2.opacity(0.5))
+                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(isRecurring ? AppTheme.accent.opacity(0.5) : .white.opacity(0.08), lineWidth: isRecurring ? 1.5 : 1))
+                Image(systemName: isRecurring ? "repeat.circle.fill" : "repeat.circle")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(isRecurring ? AppTheme.accent : AppTheme.textTertiary)
             }
-        } label: {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(isRecurring ? AppTheme.accent.opacity(0.2) : AppTheme.surface2.opacity(0.5))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(isRecurring ? AppTheme.accent.opacity(0.5) : .white.opacity(0.08), lineWidth: isRecurring ? 1.5 : 1)
-                        )
-                    
-                    Image(systemName: isRecurring ? "repeat.circle.fill" : "repeat.circle")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(isRecurring ? AppTheme.accent : AppTheme.textTertiary)
-                }
-                .frame(width: 44, height: 44)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(type == .expense ? "Gasto recurrente" : "Ingreso recurrente")
-                        .foregroundStyle(AppTheme.textPrimary)
-                        .font(.system(.body, design: .rounded).weight(.semibold))
-                    Text(type == .expense ? "Como suscripciones o pagos mensuales" : "Como sueldo o ingresos fijos")
-                        .foregroundStyle(AppTheme.textTertiary)
-                        .font(.caption)
-                }
-                
-                Spacer()
-                
-                Toggle("", isOn: $isRecurring)
-                    .tint(AppTheme.accent)
-                    .labelsHidden()
+            .frame(width: 44, height: 44)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(type == .expense ? "Gasto recurrente" : "Ingreso recurrente")
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .font(.system(.body, design: .rounded).weight(.semibold))
+                Text(type == .expense ? "Como suscripciones o pagos mensuales" : "Como sueldo o ingresos fijos")
+                    .foregroundStyle(AppTheme.textTertiary)
+                    .font(.caption)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                            .fill(AppTheme.surface2.opacity(0.6))
-                    )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                    .strokeBorder(.white.opacity(0.08), lineWidth: 1)
-            )
+            Spacer()
+            Toggle("", isOn: $isRecurring)
+                .tint(AppTheme.accent)
+                .labelsHidden()
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(fieldBackground)
     }
 
+    private var fieldBackground: some View {
+        RoundedRectangle(cornerRadius: AppTheme.controlRadius)
+            .fill(.ultraThinMaterial)
+            .overlay(RoundedRectangle(cornerRadius: AppTheme.controlRadius).fill(AppTheme.surface2.opacity(0.6)))
+            .overlay(RoundedRectangle(cornerRadius: AppTheme.controlRadius).strokeBorder(.white.opacity(0.08), lineWidth: 1))
+    }
+    
     private func field<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
@@ -245,18 +241,7 @@ struct AddMovementView: View {
             content()
                 .padding(.horizontal, 14)
                 .padding(.vertical, 14)
-                .background(
-                    RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                                .fill(AppTheme.surface2.opacity(0.6))
-                        )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                        .strokeBorder(.white.opacity(0.08), lineWidth: 1)
-                )
+                .background(fieldBackground)
         }
     }
 
@@ -265,9 +250,7 @@ struct AddMovementView: View {
             Text("Categoría")
                 .foregroundStyle(AppTheme.textTertiary)
                 .font(.caption.weight(.medium))
-
-            let cols = [GridItem(.adaptive(minimum: 90), spacing: 12)]
-            LazyVGrid(columns: cols, spacing: 12) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 12)], spacing: 12) {
                 ForEach(availableCategories) { cat in
                     Button {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
@@ -275,29 +258,19 @@ struct AddMovementView: View {
                         }
                     } label: {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            RoundedRectangle(cornerRadius: 14)
                                 .fill(.ultraThinMaterial)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(AppTheme.surface2.opacity(0.6))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .strokeBorder(.white.opacity(0.08), lineWidth: 1)
-                                )
-
+                                .overlay(RoundedRectangle(cornerRadius: 14).fill(AppTheme.surface2.opacity(0.6)))
+                                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.white.opacity(0.08), lineWidth: 1))
                             if category == cat {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                RoundedRectangle(cornerRadius: 14)
                                     .strokeBorder(AppTheme.accent.opacity(0.85), lineWidth: 2)
                                     .matchedGeometryEffect(id: "cat-outline", in: ns)
                             }
-
                             VStack(spacing: 8) {
                                 Image(systemName: cat.systemImage)
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(category == cat ? AppTheme.accent : AppTheme.textSecondary)
-                                    .matchedGeometryEffect(id: "cat-icon-\(cat.id)", in: ns, isSource: category == cat)
-
                                 Text(cat.title)
                                     .font(.caption.weight(.semibold))
                                     .foregroundStyle(category == cat ? AppTheme.textPrimary : AppTheme.textSecondary)
@@ -307,7 +280,6 @@ struct AddMovementView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .contentShape(Rectangle())
                     .scaleEffect(category == cat ? 1.02 : 1.0)
                 }
             }
@@ -319,12 +291,16 @@ struct AddMovementView: View {
     }
 
     private var parsedAmount: Double {
-        // Acepta números con puntos/espacios de forma tolerante.
-        let cleaned = amountText
-            .replacingOccurrences(of: ".", with: "")
-            .replacingOccurrences(of: ",", with: ".")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        return Double(cleaned) ?? 0
+        Double(amountText.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)) ?? 0
+    }
+    
+    private func formatAmount(_ amount: Double) -> String {
+        // Formatear el monto sin símbolo de moneda para el TextField
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        formatter.groupingSeparator = ""
+        return formatter.string(from: NSNumber(value: amount)) ?? String(format: "%.0f", amount)
     }
 
     private func submit() {
@@ -342,7 +318,7 @@ struct AddMovementView: View {
 }
 
 #Preview {
-    AddMovementView()
+    AddMovementView(initialAmount: 18500, initialTitle: "Supermercado", initialCategory: .comida)
         .environmentObject(AppViewModel.preview)
 }
 

@@ -2,8 +2,6 @@
 //  NeonCard.swift
 //  FinanzasApp
 //
-//  Card reutilizable: bordes redondeados, sombra suave y borde sutil (look “tech”).
-//
 
 import SwiftUI
 
@@ -18,14 +16,10 @@ struct NeonCard<Content: View>: View {
         content
             .padding(16)
             .background(
-                RoundedRectangle(cornerRadius: AppTheme.cardRadius, style: .continuous)
-                    // Material para dejar ver el tornasolado detrás (más “bolt” y menos bloque negro).
+                RoundedRectangle(cornerRadius: AppTheme.cardRadius)
                     .fill(.ultraThinMaterial)
                     .overlay(AppTheme.surface.opacity(0.35))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppTheme.cardRadius, style: .continuous)
-                            .strokeBorder(.white.opacity(0.06), lineWidth: 1)
-                    )
+                    .overlay(RoundedRectangle(cornerRadius: AppTheme.cardRadius).strokeBorder(.white.opacity(0.06), lineWidth: 1))
                     .shadow(color: .black.opacity(0.25), radius: 14, x: 0, y: 8)
             )
     }

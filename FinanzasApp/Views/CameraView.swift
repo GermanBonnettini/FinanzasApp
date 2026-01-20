@@ -15,7 +15,7 @@ struct CameraView: View {
     
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedImage: UIImage?
-    @State private var showInbox = false
+    @State private var showAddMovement = false
     
     var body: some View {
         ZStack {
@@ -42,20 +42,23 @@ struct CameraView: View {
                 if let data = try? await newItem?.loadTransferable(type: Data.self),
                    let image = UIImage(data: data) {
                     selectedImage = image
-                    ticketVM.scannedImage = image
                     ticketVM.processTicket(image: image)
                 }
             }
         }
-        .onChange(of: ticketVM.detectedMovement) { _, newValue in
-            if newValue != nil {
-                showInbox = true
+        .onChange(of: ticketVM.isProcessing) { _, isProcessing in
+            if !isProcessing && ticketVM.detectedAmount != nil {
+                showAddMovement = true
             }
         }
-        .fullScreenCover(isPresented: $showInbox) {
-            InboxView(ticketVM: ticketVM)
-                .environmentObject(vm)
-                .preferredColorScheme(.dark)
+        .fullScreenCover(isPresented: $showAddMovement) {
+            AddMovementView(
+                initialAmount: ticketVM.detectedAmount,
+                initialTitle: "",
+                initialCategory: .comida
+            )
+            .environmentObject(vm)
+            .preferredColorScheme(.dark)
         }
     }
     
@@ -77,15 +80,12 @@ struct CameraView: View {
                 Image(systemName: "camera.fill")
                     .font(.system(size: 64, weight: .light))
                     .foregroundStyle(AppTheme.accent.opacity(0.6))
-                
                 Text("Toca para abrir la cámara")
                     .foregroundStyle(AppTheme.textPrimary)
                     .font(.system(.title3, design: .rounded).weight(.semibold))
-                
                 Text("O selecciona una imagen desde tu galería")
                     .foregroundStyle(AppTheme.textTertiary)
                     .font(.subheadline)
-                
                 PhotosPicker(selection: $selectedItem, matching: .images) {
                     HStack(spacing: 10) {
                         Image(systemName: "camera.fill")
@@ -95,10 +95,7 @@ struct CameraView: View {
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                            .fill(AppTheme.accent)
-                    )
+                    .background(RoundedRectangle(cornerRadius: AppTheme.controlRadius).fill(AppTheme.accent))
                 }
                 .buttonStyle(.plain)
             }
@@ -127,12 +124,9 @@ struct CameraView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(
-                        RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
+                        RoundedRectangle(cornerRadius: AppTheme.controlRadius)
                             .fill(AppTheme.surface2)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                                    .strokeBorder(.white.opacity(0.08), lineWidth: 1)
-                            )
+                            .overlay(RoundedRectangle(cornerRadius: AppTheme.controlRadius).strokeBorder(.white.opacity(0.08), lineWidth: 1))
                     )
             }
             .buttonStyle(.plain)
@@ -150,7 +144,7 @@ struct CameraView: View {
                     .foregroundStyle(AppTheme.textPrimary)
                     .font(.system(.body, design: .rounded).weight(.semibold))
                 
-                Text("Detectando monto, fecha y categoría")
+                Text("Reconociendo texto del ticket...")
                     .foregroundStyle(AppTheme.textTertiary)
                     .font(.caption)
             }

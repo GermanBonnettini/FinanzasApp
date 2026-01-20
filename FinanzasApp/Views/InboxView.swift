@@ -26,10 +26,11 @@ struct InboxView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     header
                     
-                    if let detected = ticketVM.detectedMovement {
-                        detectionCard(detected)
-                        
+                    if let amount = ticketVM.detectedAmount {
+                        detectionCard(amount: amount)
                         actionButtons
+                    } else {
+                        emptyState
                     }
                     
                     Spacer(minLength: 24)
@@ -40,11 +41,8 @@ struct InboxView: View {
             .scrollIndicators(.hidden)
         }
         .onAppear {
-            if let detected = ticketVM.detectedMovement {
-                editedAmount = Formatters.currency.string(from: NSNumber(value: detected.amount)) ?? ""
-                editedTitle = detected.title
-                editedCategory = detected.category
-                editedDate = detected.date
+            if let amount = ticketVM.detectedAmount {
+                editedAmount = Formatters.currency.string(from: NSNumber(value: amount)) ?? ""
             }
         }
         .sheet(isPresented: $showEditSheet) {
@@ -87,31 +85,40 @@ struct InboxView: View {
         }
     }
     
-    private func detectionCard(_ detected: DetectedMovement) -> some View {
+    private var emptyState: some View {
+        NeonCard {
+            VStack(spacing: 16) {
+                Text("No se detectó información del ticket")
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .font(.system(.body, design: .rounded).weight(.semibold))
+                Text("Intenta tomar otra foto con mejor iluminación")
+                    .foregroundStyle(AppTheme.textTertiary)
+                    .font(.subheadline)
+            }
+            .padding(.vertical, 20)
+        }
+    }
+    
+    private func detectionCard(amount: Double) -> some View {
         NeonCard {
             VStack(alignment: .leading, spacing: 16) {
-                // Badge de fuente
                 HStack(spacing: 6) {
-                    Text(detected.source.icon)
-                    Text(detected.source.label)
+                    Text("📸")
+                    Text("Ticket")
                         .font(.caption.weight(.semibold))
                 }
                 .foregroundStyle(AppTheme.accent)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(AppTheme.accent.opacity(0.15))
-                )
+                .background(Capsule().fill(AppTheme.accent.opacity(0.15)))
                 
                 Divider().overlay(.white.opacity(0.08))
                 
-                // Detalles detectados
                 VStack(alignment: .leading, spacing: 14) {
-                    detailRow(label: "Monto", value: Formatters.currency.string(from: NSNumber(value: detected.amount)) ?? "$0")
-                    detailRow(label: "Fecha", value: Formatters.date.string(from: detected.date))
-                    detailRow(label: "Categoría", value: detected.category.title, icon: detected.category.systemImage)
-                    detailRow(label: "Descripción", value: detected.title)
+                    detailRow(label: "Monto detectado", value: Formatters.currency.string(from: NSNumber(value: amount)) ?? "$0")
+                    detailRow(label: "Fecha", value: Formatters.date.string(from: editedDate))
+                    detailRow(label: "Categoría", value: editedCategory.title, icon: editedCategory.systemImage)
+                    detailRow(label: "Descripción", value: editedTitle.isEmpty ? "Sin descripción" : editedTitle)
                 }
             }
         }
@@ -151,7 +158,7 @@ struct InboxView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(
-                        RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
+                        RoundedRectangle(cornerRadius: AppTheme.controlRadius)
                             .fill(AppTheme.accent)
                             .shadow(color: AppTheme.accent.opacity(0.25), radius: 18, x: 0, y: 10)
                     )
@@ -169,16 +176,10 @@ struct InboxView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
-                            RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
+                            RoundedRectangle(cornerRadius: AppTheme.controlRadius)
                                 .fill(.ultraThinMaterial)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                                        .fill(AppTheme.surface2.opacity(0.6))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                                        .strokeBorder(.white.opacity(0.08), lineWidth: 1)
-                                )
+                                .overlay(RoundedRectangle(cornerRadius: AppTheme.controlRadius).fill(AppTheme.surface2.opacity(0.6)))
+                                .overlay(RoundedRectangle(cornerRadius: AppTheme.controlRadius).strokeBorder(.white.opacity(0.08), lineWidth: 1))
                         )
                 }
                 .buttonStyle(.plain)
@@ -193,16 +194,10 @@ struct InboxView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
-                            RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
+                            RoundedRectangle(cornerRadius: AppTheme.controlRadius)
                                 .fill(.ultraThinMaterial)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                                        .fill(AppTheme.surface2.opacity(0.6))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                                        .strokeBorder(AppTheme.expense.opacity(0.3), lineWidth: 1)
-                                )
+                                .overlay(RoundedRectangle(cornerRadius: AppTheme.controlRadius).fill(AppTheme.surface2.opacity(0.6)))
+                                .overlay(RoundedRectangle(cornerRadius: AppTheme.controlRadius).strokeBorder(AppTheme.expense.opacity(0.3), lineWidth: 1))
                         )
                 }
                 .buttonStyle(.plain)
@@ -211,13 +206,13 @@ struct InboxView: View {
     }
     
     private func confirmMovement() {
-        guard let detected = ticketVM.detectedMovement else { return }
+        guard let amount = ticketVM.detectedAmount else { return }
         
         let movement = Movement(
             type: .expense,
             category: editedCategory,
-            title: editedTitle.isEmpty ? detected.title : editedTitle,
-            amount: parseAmount(editedAmount) ?? detected.amount,
+            title: editedTitle.isEmpty ? "Ticket" : editedTitle,
+            amount: parseAmount(editedAmount) ?? amount,
             date: editedDate
         )
         
@@ -232,12 +227,7 @@ struct InboxView: View {
     }
     
     private func parseAmount(_ text: String) -> Double? {
-        let cleaned = text
-            .replacingOccurrences(of: "$", with: "")
-            .replacingOccurrences(of: ".", with: "")
-            .replacingOccurrences(of: ",", with: ".")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        return Double(cleaned)
+        Double(text.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces))
     }
 }
 
@@ -300,10 +290,7 @@ private struct EditMovementSheet: View {
                             .foregroundStyle(.black)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                                    .fill(AppTheme.accent)
-                            )
+                            .background(RoundedRectangle(cornerRadius: AppTheme.controlRadius).fill(AppTheme.accent))
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 8)
@@ -323,34 +310,18 @@ private struct EditMovementSheet: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 14)
                 .background(
-                    RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
+                    RoundedRectangle(cornerRadius: AppTheme.controlRadius)
                         .fill(.ultraThinMaterial)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                                .fill(AppTheme.surface2.opacity(0.6))
-                        )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
-                        .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+                        .overlay(RoundedRectangle(cornerRadius: AppTheme.controlRadius).fill(AppTheme.surface2.opacity(0.6)))
+                        .overlay(RoundedRectangle(cornerRadius: AppTheme.controlRadius).strokeBorder(.white.opacity(0.08), lineWidth: 1))
                 )
         }
     }
 }
 
 #Preview {
-    InboxView(ticketVM: {
-        let vm = TicketViewModel()
-        vm.detectedMovement = DetectedMovement(
-            amount: 18500,
-            date: Date(),
-            category: .comida,
-            title: "Supermercado",
-            source: .ticket
-        )
-        return vm
-    }())
-    .environmentObject(AppViewModel.preview)
+    InboxView(ticketVM: TicketViewModel())
+        .environmentObject(AppViewModel.preview)
 }
 
 

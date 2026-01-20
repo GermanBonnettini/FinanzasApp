@@ -21,21 +21,11 @@ struct BarChartView: View {
             HStack(alignment: .bottom, spacing: 8) {
                 ForEach(Array(data.enumerated()), id: \.offset) { index, item in
                     VStack(spacing: 8) {
-                        // Barra
                         GeometryReader { geo in
                             VStack {
                                 Spacer()
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                AppTheme.accent,
-                                                AppTheme.accent.opacity(0.7)
-                                            ],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(LinearGradient(colors: [AppTheme.accent, AppTheme.accent.opacity(0.7)], startPoint: .top, endPoint: .bottom))
                                     .frame(height: animate ? geo.size.height * CGFloat(item.amount / maxAmount) : 0)
                                     .shadow(color: AppTheme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
                             }
