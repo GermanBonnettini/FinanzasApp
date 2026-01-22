@@ -76,7 +76,7 @@ This project is also an exploration of a modern development workflow using **Cur
 
 | 🏠 Scan Ticket | 📚 Movements | 📚 New Movement |
 |:--------:|:------------------:|:---------------:|
-| ![Home](.//Screenshots/Escanear-Ticket.png) | ![Statistics](./Screenshots/Movimientos.png) | ![Statistics Detailed](./Screenshots/Nuevo-Movimiento.png) |
+| ![Scan Ticket](.//Screenshots/Escanear-Ticket.png) | ![Movements](./Screenshots/Movimientos.png) | ![New Movement](./Screenshots/Nuevo-Movimiento.png) |
 
 ---
 
