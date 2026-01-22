@@ -72,7 +72,7 @@ This project is also an exploration of a modern development workflow using **Cur
 
 | 🏠 Home | 📚 Statistics | 📚 Statistics Detailed |
 |:--------:|:------------------:|:---------------:|
-| ![Home](./Screenshots/Home-Dashboard.png) | ![Statistics](./Screenshots/Estadisticas.png) | ![Statistics Detailed](./Screenshots/Estadisticas-2.png) |
+| ![Home](./Screenshots/Home-Dashboard.png) | ![Statistics](./Screenshots/Estadisticas.png) | ![Statistics Detailed](./Screenshots/Estadisticas2.png) |
 
 | 🏠 Scan Ticket | 📚 Movements | 📚 New Movement |
 |:--------:|:------------------:|:---------------:|
