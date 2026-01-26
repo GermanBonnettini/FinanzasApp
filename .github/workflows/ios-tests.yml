@@ -9,7 +9,8 @@ name: iOS Tests
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
 
 jobs:
@@ -34,3 +35,4 @@ jobs:
           xcodebuild test \
             -scheme "FinanzasApp" \
             -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest'
+
