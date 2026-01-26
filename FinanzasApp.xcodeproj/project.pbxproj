@@ -45,6 +45,11 @@
 			path = FinanzasAppUITests;
 			sourceTree = "<group>";
 		};
+		369F3AC42F2804E10098C704 /* .github */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = .github;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +80,7 @@
 		364F6CF02EF222F3005B0228 = {
 			isa = PBXGroup;
 			children = (
+				369F3AC42F2804E10098C704 /* .github */,
 				364F6CFB2EF222F3005B0228 /* FinanzasApp */,
 				364F6D0B2EF222F5005B0228 /* FinanzasAppTests */,
 				364F6D152EF222F5005B0228 /* FinanzasAppUITests */,
@@ -109,6 +115,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				364F6CFB2EF222F3005B0228 /* FinanzasApp */,
+				369F3AC42F2804E10098C704 /* .github */,
 			);
 			name = FinanzasApp;
 			packageProductDependencies = (
