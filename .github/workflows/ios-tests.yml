@@ -21,13 +21,11 @@ jobs:
 
       - name: Show Xcode version
         run: xcodebuild -version
-        
-    - name: Run Unit Tests (only)
-      run: |
-       set -o pipefail
-       xcodebuild test \
-         -scheme "FinanzasApp" \
-         -only-testing:FinanzasAppTests \
-         -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
 
-    
+      - name: Run Unit Tests (only)
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -scheme "FinanzasApp" \
+            -only-testing:FinanzasAppTests \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'
