@@ -22,11 +22,45 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: List available runtimes & devices (debug)
+        run: |
+          xcrun simctl list runtimes
+          xcrun simctl list devicetypes
+          xcrun simctl list devices available
+
+      - name: Create & boot iOS Simulator
+        id: sim
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Pick the newest available iOS runtime identifier (e.g. com.apple.CoreSimulator.SimRuntime.iOS-26-2)
+          RUNTIME_ID="$(xcrun simctl list runtimes | awk '/iOS/ && /com.apple.CoreSimulator.SimRuntime.iOS/ {print $NF}' | tail -n 1)"
+          echo "Picked runtime: $RUNTIME_ID"
+
+          DEVICE_NAME="CI-iPhone"
+          DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-16"
+
+          # Create device (or reuse if it already exists)
+          UDID="$(xcrun simctl list devices | awk -v name="$DEVICE_NAME" '$0 ~ name {gsub(/[()]/,"",$NF); print $NF; exit}')"
+          if [ -z "${UDID:-}" ]; then
+            UDID="$(xcrun simctl create "$DEVICE_NAME" "$DEVICE_TYPE" "$RUNTIME_ID")"
+            echo "Created simulator UDID: $UDID"
+          else
+            echo "Reusing simulator UDID: $UDID"
+          fi
+
+          # Boot it
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
       - name: Run Unit Tests (only)
         run: |
-           set -o pipefail
-           xcodebuild test \
-             -scheme "FinanzasApp" \
-             -only-testing:FinanzasAppTests \
-             -destination 'platform=iOS Simulator,name=Any iOS Simulator Device'
+          set -o pipefail
+          xcodebuild test \
+            -scheme "FinanzasApp" \
+            -only-testing:FinanzasAppTests \
+            -destination "id=${{ steps.sim.outputs.udid }}"
 
